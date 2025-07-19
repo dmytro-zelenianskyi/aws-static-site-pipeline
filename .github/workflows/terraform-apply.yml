@@ -9,6 +9,7 @@ env:
   AWS_REGION : ${{ vars.AWS_REGION }}
   AWS_TERRAFORM_BUCKET : ${{ vars.AWS_TERRAFORM_BUCKET }}
   AWS_CONTENT_BUCKET : ${{ vars.AWS_CONTENT_BUCKET }}
+  TERRAFORM_VERSION : ${{ vars.TERRAFORM_VERSION }}
   PROJECT_NAME : ${{ vars.PROJECT_NAME }}
 
 permissions:
@@ -23,6 +24,10 @@ jobs:
         with:
           repository: ${{ env.TERRAFORM_REPO }}
           token: ${{ secrets.PAT_PIPELINE }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
