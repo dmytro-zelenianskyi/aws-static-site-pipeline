@@ -7,6 +7,7 @@ env:
   TERRAFORM_REPO : ${{ vars.TERRAFORM_REPO }}
   AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_TERRAFORM_BUCKET: ${{ vars.AWS_TERRAFORM_BUCKET }}
+  AWS_CONTENT_BUCKET : ${{ vars.AWS_CONTENT_BUCKET }}
   TERRAFORM_VERSION : ${{ vars.TERRAFORM_VERSION }}
   PROJECT_NAME: ${{ vars.PROJECT_NAME }}
 
@@ -35,6 +36,14 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Terraform Init Backend
         working-directory: main
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+          AWS_TERRAFORM_BUCKET: ${{ env.AWS_TERRAFORM_BUCKET }}
+          PROJECT_NAME: ${{ env.PROJECT_NAME }}
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+          TF_VAR_aws_terraform_bucket: ${{ env.AWS_TERRAFORM_BUCKET }}
+          TF_VAR_project_name: ${{ env.PROJECT_NAME }}
+          TF_VAR_aws_content_bucket: ${{ env.AWS_CONTENT_BUCKET }}
         run: |
           terraform init \
             -backend-config="bucket=${AWS_TERRAFORM_BUCKET}" \
