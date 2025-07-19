@@ -34,6 +34,14 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE }}
           aws-region: ${{ env.AWS_REGION }}
+      - name: Terraform Bootstrap
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+          AWS_TERRAFORM_BUCKET: ${{ env.AWS_TERRAFORM_BUCKET }}
+        run: |
+          cd bootstrap
+          terraform init
+          terraform apply -auto-approve
       - name: Terraform Init & Apply
         env:
           AWS_REGION: ${{ env.AWS_REGION }}
@@ -41,6 +49,7 @@ jobs:
           PROJECT_NAME: ${{ env.PROJECT_NAME }}
           TF_VAR_aws_content_bucket: ${{ env.AWS_CONTENT_BUCKET }}
         run: |
+          cd main
           terraform init \
             -backend-config="bucket=${AWS_TERRAFORM_BUCKET}" \
             -backend-config="key=${PROJECT_NAME}/terraform.tfstate" \
