@@ -1,0 +1,43 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_TERRAFORM_BUCKET: ${{ vars.AWS_TERRAFORM_BUCKET }}
+  TERRAFORM_VERSION : ${{ vars.TERRAFORM_VERSION }}
+  PROJECT_NAME: ${{ vars.PROJECT_NAME }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Terraform repo
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      - name: Terraform Init (with backend config)
+        working-directory: main
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ env.AWS_TERRAFORM_BUCKET }}" \
+            -backend-config="key=${{ env.PROJECT_NAME }}/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="encrypt=true" \
+            -backend-config="dynamodb_table=terraform-locks"
+      - name: Terraform Destroy
+        working-directory: main
+        run: terraform destroy -auto-approve
