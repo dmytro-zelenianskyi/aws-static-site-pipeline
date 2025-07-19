@@ -36,10 +36,16 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Terraform Init & Apply
         env:
-          TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_aws_terraform_bucket: ${{ env.AWS_TERRAFORM_BUCKET }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+          AWS_TERRAFORM_BUCKET: ${{ env.AWS_TERRAFORM_BUCKET }}
+          PROJECT_NAME: ${{ env.PROJECT_NAME }}
           TF_VAR_aws_content_bucket: ${{ env.AWS_CONTENT_BUCKET }}
-          TF_VAR_project_name: ${{ env.PROJECT_NAME }}
         run: |
-          terraform init
+          terraform init \
+            -backend-config="bucket=${AWS_TERRAFORM_BUCKET}" \
+            -backend-config="key=${PROJECT_NAME}/terraform.tfstate" \
+            -backend-config="region=${AWS_REGION}" \
+            -backend-config="encrypt=true" \
+            -backend-config="dynamodb_table=terraform-locks"
           terraform apply -auto-approve
+
