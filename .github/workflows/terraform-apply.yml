@@ -1,0 +1,39 @@
+name: Terraform Apply
+
+on:
+  repository_dispatch:
+    types: [terraform-updated]
+
+env:
+  TERRAFORM_REPO : ${{ vars.TERRAFORM_REPO }}
+  AWS_REGION : ${{ vars.AWS_REGION }}
+  AWS_TERRAFORM_BUCKET : ${{ vars.AWS_TERRAFORM_BUCKET }}
+  AWS_CONTENT_BUCKET : ${{ vars.AWS_CONTENT_BUCKET }}
+  PROJECT_NAME : ${{ vars.PROJECT_NAME }}
+
+permissions:
+  id-token: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Terraform repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.TERRAFORM_REPO }}
+          token: ${{ secrets.PAT_PIPELINE }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Terraform Init & Apply
+        env:
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+          TF_VAR_aws_terraform_bucket: ${{ env.AWS_TERRAFORM_BUCKET }}
+          TF_VAR_aws_content_bucket: ${{ env.AWS_CONTENT_BUCKET }}
+          TF_VAR_project_name: ${{ env.PROJECT_NAME }}
+        run: |
+          terraform init
+          terraform apply -auto-approve

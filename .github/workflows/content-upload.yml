@@ -1,0 +1,31 @@
+name: Upload Content to S3
+
+on:
+  repository_dispatch:
+    types: [content-updated]
+
+env:
+  CONTENT_REPO : ${{ vars.CONTENT_REPO }}
+  AWS_CONTENT_BUCKET : ${{ vars.AWS_CONTENT_BUCKET }}
+  AWS_REGION : ${{ vars.AWS_REGION }}
+
+permissions:
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Content repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.CONTENT_REPO }}
+          token: ${{ secrets.PAT_PIPELINE }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Upload Content to S3
+        run: |
+          aws s3 sync ./ s3://${{ env.AWS_CONTENT_BUCKET }} --delete
