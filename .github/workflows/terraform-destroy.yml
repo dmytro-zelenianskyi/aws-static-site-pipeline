@@ -3,7 +3,7 @@ name: Terraform Destroy
 on:
   workflow_dispatch:
     inputs:
-      destroy:
+      force_destroy:
         description: 'Force destroy all resources'
         required: false
         default: false
@@ -67,4 +67,10 @@ jobs:
           TF_VAR_aws_terraform_bucket: ${{ env.AWS_TERRAFORM_BUCKET }}
           TF_VAR_project_name: ${{ env.PROJECT_NAME }}
           TF_VAR_aws_content_bucket: ${{ env.AWS_CONTENT_BUCKET }}
-        run: terraform destroy -auto-approve
+        run: |
+          if ${{ github.event.inputs.force_destroy }}; then
+            terraform destroy -auto-approve -lock=false
+          else
+            terraform apply -auto-approve
+          fi
+
