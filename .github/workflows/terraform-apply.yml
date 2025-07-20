@@ -10,7 +10,7 @@ env:
   AWS_REGION : ${{ vars.AWS_REGION }}
   AWS_TERRAFORM_BUCKET : ${{ vars.AWS_TERRAFORM_BUCKET }}
   AWS_CONTENT_BUCKET : ${{ vars.AWS_CONTENT_BUCKET }}
-  AWS_RDYNAMODB : ${{ vars.AWS_RDYNAMODB }}
+  AWS_DYNAMODB : ${{ vars.AWS_DYNAMODB }}
   TERRAFORM_VERSION : ${{ vars.TERRAFORM_VERSION }}
   PROJECT_NAME : ${{ vars.PROJECT_NAME }}
 
@@ -42,6 +42,7 @@ jobs:
           AWS_TERRAFORM_BUCKET: ${{ env.AWS_TERRAFORM_BUCKET }}
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
           TF_VAR_aws_terraform_bucket: ${{ env.AWS_TERRAFORM_BUCKET }}
+          TF_VAR_aws_dynamodb_state: ${{ env.AWS_DYNAMODB }}
         run: |
           terraform init
 
@@ -52,8 +53,8 @@ jobs:
             terraform import aws_s3_bucket_public_access_block.terraform_state ${AWS_TERRAFORM_BUCKET}
           fi
 
-          if aws dynamodb describe-table --table-name ${AWS_RDYNAMODB} 2>/dev/null; then
-            terraform import aws_dynamodb_table.terraform_state ${AWS_RDYNAMODB}
+          if aws dynamodb describe-table --table-name ${AWS_DYNAMODB} 2>/dev/null; then
+            terraform import aws_dynamodb_table.terraform_state ${AWS_DYNAMODB}
           fi
 
           terraform apply -auto-approve
@@ -73,6 +74,6 @@ jobs:
             -backend-config="key=${PROJECT_NAME}/terraform.tfstate" \
             -backend-config="region=${AWS_REGION}" \
             -backend-config="encrypt=true" \
-            -backend-config="dynamodb_table=${AWS_RDYNAMODB}"
+            -backend-config="dynamodb_table=${AWS_DYNAMODB}"
 
           terraform apply -auto-approve -lock-timeout=60s
