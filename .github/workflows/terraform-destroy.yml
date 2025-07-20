@@ -2,6 +2,12 @@ name: Terraform Destroy
 
 on:
   workflow_dispatch:
+    inputs:
+      destroy:
+        description: 'Force destroy all resources'
+        required: false
+        default: false
+        type: boolean
 
 env:
   TERRAFORM_REPO : ${{ vars.TERRAFORM_REPO }}
