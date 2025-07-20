@@ -10,6 +10,7 @@ env:
   AWS_REGION : ${{ vars.AWS_REGION }}
   AWS_TERRAFORM_BUCKET : ${{ vars.AWS_TERRAFORM_BUCKET }}
   AWS_CONTENT_BUCKET : ${{ vars.AWS_CONTENT_BUCKET }}
+  AWS_RDYNAMODB : ${{ vars.AWS_RDYNAMODB }}
   TERRAFORM_VERSION : ${{ vars.TERRAFORM_VERSION }}
   PROJECT_NAME : ${{ vars.PROJECT_NAME }}
 
@@ -43,6 +44,18 @@ jobs:
           TF_VAR_aws_terraform_bucket: ${{ env.AWS_TERRAFORM_BUCKET }}
         run: |
           terraform init
+
+          if aws s3api head-bucket --bucket ${AWS_TERRAFORM_BUCKET} 2>/dev/null; then
+            terraform import aws_s3_bucket.terraform_state ${AWS_TERRAFORM_BUCKET}
+            terraform import aws_s3_bucket_versioning.terraform_state ${AWS_TERRAFORM_BUCKET}
+            terraform import aws_s3_bucket_server_side_encryption_configuration.terraform_state ${AWS_TERRAFORM_BUCKET}
+            terraform import aws_s3_bucket_public_access_block.terraform_state ${AWS_TERRAFORM_BUCKET}
+          fi
+
+          if aws dynamodb describe-table --table-name ${AWS_RDYNAMODB} 2>/dev/null; then
+            terraform import aws_dynamodb_table.terraform_state ${AWS_RDYNAMODB}
+          fi
+
           terraform apply -auto-approve
       - name: Terraform Init & Apply
         working-directory: main
@@ -60,6 +73,7 @@ jobs:
             -backend-config="key=${PROJECT_NAME}/terraform.tfstate" \
             -backend-config="region=${AWS_REGION}" \
             -backend-config="encrypt=true" \
-            -backend-config="dynamodb_table=terraform-locks"
+            -backend-config="dynamodb_table=${AWS_RDYNAMODB}"
+
           terraform apply -auto-approve
 
