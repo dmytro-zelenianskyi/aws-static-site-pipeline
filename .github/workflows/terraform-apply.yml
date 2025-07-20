@@ -75,5 +75,4 @@ jobs:
             -backend-config="encrypt=true" \
             -backend-config="dynamodb_table=${AWS_RDYNAMODB}"
 
-          terraform apply -auto-approve
-
+          terraform apply -auto-approve -lock-timeout=60s

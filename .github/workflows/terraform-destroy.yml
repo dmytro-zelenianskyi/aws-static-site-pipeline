@@ -71,6 +71,6 @@ jobs:
           if ${{ github.event.inputs.force_destroy }}; then
             terraform destroy -auto-approve -lock=false
           else
-            terraform apply -auto-approve
+            terraform destroy -auto-approve 
           fi
 
